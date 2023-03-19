@@ -1,4 +1,6 @@
 import { z, ZodType, ZodTypeDef } from "zod";
+import { safeJsonStringify } from "../../core/helpers";
+import { IngressHandler } from "../types";
 
 // Request from an ip address based client
 export interface ClientRequest {
@@ -22,3 +24,22 @@ export const httpRequestValidationSchema: ZodType<
   body: z.unknown().optional(),
   ip: z.function().returns(z.string()),
 });
+
+
+/**
+ * A handler called when a request should be dropped
+ */
+export class ExampleRequestDropHandler implements IngressHandler<HttpRequest> {
+  public async handle(req: HttpRequest): Promise<void> {
+    console.log(`Dropping request ${safeJsonStringify(req.body)}`);
+  }
+}
+
+/**
+ * A handler called when a request shoud be forwarded to business logic
+ */
+export class ExampleRequestForwardHandler implements IngressHandler<HttpRequest> {
+  public async handle(req: HttpRequest): Promise<void> {
+    console.log(`Forwarding request ${safeJsonStringify(req.body)}`);
+  }
+}

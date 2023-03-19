@@ -1,4 +1,3 @@
-import { getSlidingWindowHandler } from "../slidingwindow/slidingWindowIngressHandler";
 import { IngressEntryPoint } from "../../core/ingressEntryPoint";
 import {
   ExampleRequestDropHandler,
@@ -6,6 +5,7 @@ import {
   httpRequestValidationSchema,
 } from "./types";
 import { simulateTraffic } from "./helpers";
+import { getTokenBucketHandler } from "../slidingwindow/tokenBucketIngressHandler";
 
 /**
  * Script Entry Point
@@ -14,9 +14,9 @@ export const run = () => {
   // Construct an Ingress Entry Point
   const entryPoint = new IngressEntryPoint();
 
-  // setup ingress handling with sliding swindow
+  // setup ingress handling with Token Bucket algorithm
   entryPoint.useIngressHandler(
-    getSlidingWindowHandler(
+    getTokenBucketHandler(
       20,
       500,
       new ExampleRequestForwardHandler(),
