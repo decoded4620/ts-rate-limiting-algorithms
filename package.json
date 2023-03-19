@@ -1,0 +1,21 @@
+{
+  "name": "ts-rate-limiting-algorithms",
+  "version": "1.0.0",
+  "description": "A Set of TypeScript Rate Limiting Algorithms",
+  "main": "src/index.ts",
+  "author": "Bow Archer <barcher4620@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@types/node": "^18.15.3",
+    "typescript": "^5.0.2",
+    "zod": "^3.21.4"
+  },
+  "scripts": {
+    "build": "yarn tsc",
+    "start": "npx ts-node src/index.ts"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.1"
+  }
+}
