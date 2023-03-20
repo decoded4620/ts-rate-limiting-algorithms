@@ -4,7 +4,7 @@ import { ClientRequest } from "../example/types";
 import { IngressHandler, RateLimiterConfig, RateLimitStats } from "../types";
 
 /**
- * Ip Based Token Bucket Rate Limited Implementation of an IngressHandler
+ * Ip Based Leaky Bucket Rate Limited Implementation of an IngressHandler
  */
 export class LeakyBucketIngressHandler<T extends ClientRequest>
   implements IngressHandler<T>
@@ -46,7 +46,7 @@ export class LeakyBucketIngressHandler<T extends ClientRequest>
   }
 
   /**
-   * Request Ingress Traffic Token Bucket Entry Point
+   * Request Ingress Traffic Leaky Bucket Entry Point
    * @param req The request
    */
   public async handle(req: T): Promise<void> {
@@ -111,7 +111,7 @@ interface LeakyBucketRateLimiterConfig<T> extends RateLimiterConfig<T> {
   leakyBucketCapacity: number;
 }
 /**
- * A RateLimitStats interface with token count for a token bucket implementation
+ * A RateLimitStats interface with for a leaky bucket implementation
  */
 interface LeakyBucketRateLimitStats<T> extends RateLimitStats {
   // tracks a timer that will leak requests at a constant rate
@@ -128,7 +128,7 @@ interface LeakyBucketRateLimitStats<T> extends RateLimitStats {
 }
 
 /**
- * Builds a TokenBucketIngressHandler using a fwd and drop handler (to fork dropped vs fwded traffic), and an optional validation schema
+ * Builds a LeakyBucketIngressHandler using a fwd and drop handler (to fork dropped vs fwded traffic), and an optional validation schema
  * for the ingress payload.
  */
 export function getLeakyBucketHandler<T extends ClientRequest>(
