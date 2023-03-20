@@ -92,7 +92,6 @@ export function getTokenBucketHandler<T extends ClientRequest>(
   ingressTimeWindowMs: number,
   fwdHandler: IngressHandler<T>,
   dropHandler: IngressHandler<T>,
-  schema?: ZodType<T, ZodTypeDef, T>
 ): IngressHandler<T> {
   return new TokenBucketIngressHandler<T>(
     {

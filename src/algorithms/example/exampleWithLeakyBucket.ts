@@ -5,7 +5,7 @@ import {
   httpRequestValidationSchema,
 } from "./types";
 import { simulateTraffic } from "./helpers";
-import { getTokenBucketHandler } from "../slidingwindow/tokenBucketIngressHandler";
+import { getLeakyBucketHandler } from "../slidingwindow/leakyBucketIngressHandler";
 
 /**
  * Script Entry Point
@@ -16,7 +16,8 @@ export const run = () => {
 
   // setup ingress handling with Token Bucket algorithm
   entryPoint.useIngressHandler(
-    getTokenBucketHandler(
+    getLeakyBucketHandler(
+      30,
       20,
       500,
       new ExampleRequestForwardHandler(),

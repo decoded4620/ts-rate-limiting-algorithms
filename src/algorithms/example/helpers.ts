@@ -9,8 +9,9 @@ import { TrafficSimulator } from "./trafficSimulator";
 export function simulateTraffic<T>(handler: IngressHandler<T>) {
   // simulate 3 clients, one bursty one not, one spoof
   [
-    makeTrafficSimulator(handler, "1.2", 50, "Smooth", 0),
+    makeTrafficSimulator(handler, "1.2", 25, "Smooth", 0),
     makeTrafficSimulator(handler, "1.3", 50, "Burst", 10),
+    makeTrafficSimulator(handler, "1.4", 500, "Slow", 0),
     makeTrafficSimulator(handler, "", 200, "Spoof", 0),
   ].forEach((sim) => sim.simulateTraffic());
 }

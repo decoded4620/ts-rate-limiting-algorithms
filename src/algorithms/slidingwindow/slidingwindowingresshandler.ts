@@ -104,8 +104,7 @@ export function getSlidingWindowHandler<T extends ClientRequest>(
   ingressCapacity: number,
   ingressTimeWindowMs: number,
   fwdHandler: IngressHandler<T>,
-  dropHandler: IngressHandler<T>,
-  schema?: ZodType<T, ZodTypeDef, T>
+  dropHandler: IngressHandler<T>
 ): IngressHandler<T> {
   return new SlidingWindowIngressHandler<T>(
     {

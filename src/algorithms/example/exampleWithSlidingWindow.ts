@@ -20,9 +20,9 @@ export const run = () => {
       20,
       500,
       new ExampleRequestForwardHandler(),
-      new ExampleRequestDropHandler(),
-      httpRequestValidationSchema
-    )
+      new ExampleRequestDropHandler()
+    ),
+    httpRequestValidationSchema
   );
 
   simulateTraffic(entryPoint);
