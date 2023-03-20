@@ -5,7 +5,7 @@ import {
   httpRequestValidationSchema,
 } from "./types";
 import { simulateTraffic } from "./helpers";
-import { getLeakyBucketHandler } from "../slidingwindow/leakyBucketIngressHandler";
+import { getLeakyBucketHandler } from "../leakyBucket/leakyBucketIngressHandler";
 
 /**
  * Script Entry Point

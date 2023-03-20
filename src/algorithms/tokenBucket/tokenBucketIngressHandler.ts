@@ -1,3 +1,4 @@
+import { ZodType, ZodTypeDef } from "zod";
 import { ClientRequest } from "../example/types";
 import {
   IngressHandler,
@@ -7,12 +8,12 @@ import {
 } from "../types";
 
 /**
- * Ip Based Sliding Window Rate Limited Implementation of an IngressHandler
+ * Ip Based Token Bucket Rate Limited Implementation of an IngressHandler
  */
-export class SlidingWindowIngressHandler<
+export class TokenBucketIngressHandler<
   T extends ClientRequest
 > extends RateLimitedIngressHandler<T> {
-  private readonly rateLimitStats: Map<string, SlidingWindowRateLimitStats> =
+  private readonly rateLimitStats: Map<string, TokenBucketRateLimitStats> =
     new Map();
 
   constructor(
@@ -24,21 +25,22 @@ export class SlidingWindowIngressHandler<
   }
 
   /**
-   * Request Ingress Traffic Sliding Window Entry Point
+   * Request Ingress Traffic Token Bucket Entry Point
    * @param req The request
    */
   public async handle(req: T): Promise<void> {
     // get the request stats for the current clients ip address
+    // don't allow ip spoofing or removal
     if (req.ip() === "") return this.tryDroppingRequest(req, `IP Address was blank or invalid`);
 
-    let ipStats: SlidingWindowRateLimitStats | undefined =
+    let ipStats: TokenBucketRateLimitStats | undefined =
       this.rateLimitStats.get(req.ip());
 
     if (ipStats === undefined) {
       ipStats = {
         clientIp: req.ip(),
         currentIngressCount: 0,
-        previousCount: 0,
+        tokenBucketCount: this.config.ingressCapacity,
         timeFrameStartTime: Math.round(performance.now()),
       };
 
@@ -51,50 +53,43 @@ export class SlidingWindowIngressHandler<
 
       // update the window every 'ingressTimeWindowMs'
       if (timeDiff > this.config.ingressTimeFrame) {
-        ipStats.previousCount = ipStats.currentIngressCount;
         ipStats.currentIngressCount = 0;
+        ipStats.tokenBucketCount = this.config.ingressCapacity;
         ipStats.timeFrameStartTime = nowMs;
       }
 
-      // calculate ingress coming in within the sliding time window.
-      const ingress = Math.floor(
-        (ipStats.previousCount *
-          (this.config.ingressTimeFrame -
-            timeDiff / this.config.ingressTimeFrame)) /
-          this.config.ingressTimeFrame +
-          ipStats.currentIngressCount
-      );
-
       // if we're over capacity, call the drop callback
-      if (ingress > this.config.ingressCapacity) {
-        return this.tryDroppingRequest(req, `Requests too fast`);
+      if (ipStats.tokenBucketCount === 0) {
+        this.tryDroppingRequest(req, `Requests too fast`);
       } else {
-        await this.tryForwardingRequest(req);
-        ipStats.currentIngressCount++;
+        this.tryForwardingRequest(req);
+        ipStats.tokenBucketCount--;
       }
     }
   }
 }
 
-// A RateLimitStats with previous count for a sliding window implementation
-interface SlidingWindowRateLimitStats extends RateLimitStats {
-  previousCount: number;
+/**
+ * A RateLimitStats interface with token count for a token bucket implementation
+ */
+interface TokenBucketRateLimitStats extends RateLimitStats {
+  tokenBucketCount: number;
 }
 
 /**
- * Builds a SlidingWindowIngressHandler using a fwd and drop handler (to fork dropped vs fwded traffic), and an optional validation schema
+ * Builds a TokenBucketIngressHandler using a fwd and drop handler (to fork dropped vs fwded traffic), and an optional validation schema
  * for the ingress payload.
  */
-export function getSlidingWindowHandler<T extends ClientRequest>(
+export function getTokenBucketHandler<T extends ClientRequest>(
   ingressCapacity: number,
-  ingressTimeFrame: number,
+  ingressTimeWindowMs: number,
   fwdHandler: IngressHandler<T>,
   dropHandler: IngressHandler<T>
 ): IngressHandler<T> {
-  return new SlidingWindowIngressHandler<T>(
+  return new TokenBucketIngressHandler<T>(
     {
       ingressCapacity,
-      ingressTimeFrame: ingressTimeFrame,
+      ingressTimeFrame: ingressTimeWindowMs,
     },
     fwdHandler.handle,
     (req: T, reason?: string) => {
